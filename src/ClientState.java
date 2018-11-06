@@ -26,4 +26,20 @@ public class ClientState {
     return this.nick;
   }
   
+  public void setRoom(String roomName){
+    this.sala = new String(roomName);
+  }
+  
+  public String getRoom(){
+    return this.sala;
+  }
+  
+  public void setState(String state){
+    this.state = new String(state);
+  }
+  
+  public String getState(){
+    return this.state;
+  }
+  
 }
