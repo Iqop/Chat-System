@@ -13,7 +13,7 @@ public class ChatServer {
     static private final Charset charset = Charset.forName("UTF8");
     static private final CharsetDecoder decoder = charset.newDecoder();
     static private LinkedList<String> usersNickNames = new LinkedList<>();
-    static private LinkedList<String> chatRooms = new LinkedList<>();
+    static private Map<String, String> chatRooms = new HashMap<>();
 
 
     static public void main(String args[]) throws Exception {
@@ -164,8 +164,7 @@ public class ChatServer {
         // Será aqui?
         switch (aux[0]) {
             case "/nick":
-                if (checkNickNameAvailable(aux[1])) {
-                    // return "ok"
+                if (addNickName(aux[1])) {
                     buffer.clear();
                     String outgoingMessage = "Nickname set to " + aux[1] + "\n";
                     buffer.put(outgoingMessage.getBytes());
@@ -180,13 +179,13 @@ public class ChatServer {
                 }
                 break;
             case "/join":
-                joinRoom(aux[1]);
+                joinRoom(aux[1], "");
                 break;
             case "/leave":
-
+                leaveRoom("");
                 break;
             case "/bye":
-
+                byeCommand(aux[1]);
                 break;
             default:
                 // erro
@@ -197,39 +196,58 @@ public class ChatServer {
     }
 
     public static boolean checkNickNameAvailable(String nickName) {
-        if (usersNickNames.contains(nickName))
-            return false;
+        return !chatRooms.containsKey(nickName);
+    }
+
+    public static boolean addNickName(String nick) {
+        if (checkNickNameAvailable(nick)) {
+            chatRooms.put(nick, "");
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean joinRoom(String roomName, String nickName) {
+        if (getUsersNickNames().contains(nickName)) {
+            if (!chatRooms.get(nickName).equals("")) {
+                return false;           // já tem sala atribuída
+            }
+        }
+        chatRooms.put(nickName, roomName);
         return true;
     }
 
-    public static void joinRoom(String roomName /*, String nickName*/) {
-        chatRoom r = new chatRoom(roomName, "");
-
-    }
-
-
-    static class chatRoom {
-        private String name;
-        private LinkedList<String> users;
-
-        chatRoom(String name, String user) {
-            this.name = name;
-            this.users = new LinkedList<>();
-
-            if (!chatRooms.contains(name))
-                chatRooms.addFirst(name);
-            usersNickNames.addFirst(user);      // lista global de utilizadores
-            this.users.addFirst(user);          // lista local (sala) de utilizadores
-        }
-
-        boolean removeUser(String nickName) {
-            if (usersNickNames.contains(nickName)) {
-                usersNickNames.remove(nickName);
-                return true;
+    private static void leaveRoom(String nickName) {
+        if (getUsersNickNames().contains(nickName)) {
+            if (!chatRooms.get(nickName).equals("")) {
+                chatRooms.replace(nickName, "");
             }
-            return false;
         }
-
     }
 
+    private static void byeCommand(String nickname) {
+        chatRooms.keySet().remove(nickname);
+    }
+
+    private static LinkedList<String> getRooms() {
+        LinkedList<String> aux = new LinkedList<>();
+        Map<String, String> aux2 = chatRooms;
+
+        for (String key : aux2.keySet())
+            if (!aux.contains(aux2.get(key)))
+                aux.addFirst(aux2.get(key));
+
+        return aux;
+    }
+
+    private static LinkedList<String> getUsersNickNames() {
+        Map<String, String> aux2 = chatRooms;
+        LinkedList<String> aux = new LinkedList<>();
+
+        for (String key : aux2.keySet())
+            if (!aux.contains(key))
+                aux.addFirst(key);
+
+        return aux;
+    }
 }
