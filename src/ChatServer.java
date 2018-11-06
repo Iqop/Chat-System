@@ -4,6 +4,8 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.nio.charset.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ChatServer {
     // A pre-allocated buffer for the received data
@@ -14,7 +16,7 @@ public class ChatServer {
     static private final CharsetDecoder decoder = charset.newDecoder();
     static private LinkedList<String> userNames = new LinkedList<>();
     static private LinkedList<String> chatRooms = new LinkedList<>();
-
+    
     static public void main(String args[]) throws Exception {
         // Parse port from command line
         int port = Integer.parseInt(args[0]);
@@ -84,7 +86,7 @@ public class ChatServer {
 
                             // It's incoming data on a connection -- process it
                             sc = (SocketChannel) key.channel();
-                            boolean ok = processInput(sc);
+                            boolean ok = processInput(key);
 
                             // If the connection is dead, remove it from the selector
                             // and close it
@@ -127,54 +129,90 @@ public class ChatServer {
 
 
     // Just read the message from the socket and send it to stdout
-    static private boolean processInput(SocketChannel sc) throws IOException {
-
-        boolean finish = false;
-        String message = "";
-
-        while (!finish) {
-            // Read the message to the buffer
-            buffer.clear();
-            sc.read(buffer);
-            buffer.flip();
-
-            // If no data, close the connection
-            if (buffer.limit() == 0) {
-//                System.out.println("No DATA");
-                return false;
+    static private boolean processInput(SelectionKey key) throws IOException {
+      
+      buffer.clear();
+      SocketChannel sc = (SocketChannel)(key.channel());
+      sc.read(buffer);
+      buffer.flip();
+  
+      if (buffer.limit() == 0) return false;
+      
+      
+      String message = decoder.decode(buffer).toString();
+      String commandPatternStr = "^\\/(\\w+)";
+      Pattern commandPattern = Pattern.compile(commandPatternStr);
+      Matcher matcher = commandPattern.matcher(message);
+      
+      if (matcher.find()){
+        String command = matcher.group(1);
+        System.out.println("command "+command);
+        switch (command) {
+          case "nick":
+            String newNick = message.split(" ")[1];
+            
+            if (!searchNick(newNick)) {
+              String oldNick = ((ClientState) key.attachment()).getNick();
+              if (key.attachment() == null) {
+                key.attach(new ClientState(newNick));
+              } else {
+                removeNick(oldNick);
+                addNick(newNick);
+                ((ClientState) key.attachment()).setNick(newNick);
+              }
+              Responses.acceptedNickResponse(key,oldNick,newNick);
+          }else{
+              Responses.rejectedNickResponse(key);
             }
-
-            // Decode and print the message to stdout
-            message += decoder.decode(buffer).toString();
-
-            //        System.out.println("Ultimo: " + (message.charAt(message.length()-1)=='\n'));
-
-            if (message.charAt(message.length() - 1) == '\n')
-                finish = true;
+            break;
+          case "join":
+  
+            break;
+          case "leave":
+  
+            break;
+          case "bye":
+  
+            break;
         }
-        System.out.print("Recebido no servidor: " + message);
-
-
-        String[] aux = message.split(" ");
-        // Será aqui?
-        switch (aux[0]) {
-            case "/nick":
-
-                break;
-            case "/join":
-
-                break;
-            case "/leave":
-
-                break;
-            case "/bye":
-
-                break;
-            default:
-                // erro
-                break;
+      }else{
+        String unformatedCodePattern = "^\\/\\/+(.*)";
+        Pattern unfPattern = Pattern.compile(unformatedCodePattern);
+        Matcher matcherUnf = unfPattern.matcher(message);
+        
+        if (matcherUnf.find()){
+          message = new String("/"+matcherUnf.group(1));
         }
-
-        return true;
+        
+        //TODO difundir a mensagem para todos os clientes
+      }
+      
+        
+      return true;
+    }
+    
+    
+    public static boolean searchNick(String nick){
+      for(String names : userNames){
+        if (names.compareTo(nick)==0){
+          return true;
+        }
+      }
+      return false;
+    }
+    
+    public static void removeNick(String nick){
+      int id=-1;
+      for(int i=0;i<userNames.size();i++){
+        if (userNames.get(i).compareTo(nick)==0){
+          id=i;
+          i=userNames.size();
+        }
+      }
+      userNames.remove(id);
+    }
+    
+    public static void addNick(String nick){
+      userNames.add(nick);
     }
 }
