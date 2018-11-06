@@ -12,8 +12,9 @@ public class ChatServer {
     // Decoder for incoming text -- assume UTF-8
     static private final Charset charset = Charset.forName("UTF8");
     static private final CharsetDecoder decoder = charset.newDecoder();
-    static private LinkedList<String> userNames = new LinkedList<>();
+    static private LinkedList<String> usersNickNames = new LinkedList<>();
     static private LinkedList<String> chatRooms = new LinkedList<>();
+
 
     static public void main(String args[]) throws Exception {
         // Parse port from command line
@@ -129,10 +130,10 @@ public class ChatServer {
     // Just read the message from the socket and send it to stdout
     static private boolean processInput(SocketChannel sc) throws IOException {
 
-        boolean finish = false;
+        boolean finished = false;
         String message = "";
 
-        while (!finish) {
+        while (!finished) {
             // Read the message to the buffer
             buffer.clear();
             sc.read(buffer);
@@ -144,25 +145,42 @@ public class ChatServer {
                 return false;
             }
 
+
             // Decode and print the message to stdout
+//            System.out.println("Nome: " + Charset.defaultCharset().name());
+
             message += decoder.decode(buffer).toString();
 
-            //        System.out.println("Ultimo: " + (message.charAt(message.length()-1)=='\n'));
 
             if (message.charAt(message.length() - 1) == '\n')
-                finish = true;
+                finished = true;
         }
         System.out.print("Recebido no servidor: " + message);
 
 
         String[] aux = message.split(" ");
+
+
         // Será aqui?
         switch (aux[0]) {
             case "/nick":
+                if (checkNickNameAvailable(aux[1])) {
+                    // return "ok"
+                    buffer.clear();
+                    String outgoingMessage = "Nickname set to " + aux[1] + "\n";
+                    buffer.put(outgoingMessage.getBytes());
+                    buffer.flip();
+                    while (buffer.hasRemaining()) {
+                        sc.write(buffer);
+                    }
+                    buffer.rewind();
 
+                } else {
+                    // return "error"
+                }
                 break;
             case "/join":
-
+                joinRoom(aux[1]);
                 break;
             case "/leave":
 
@@ -177,4 +195,41 @@ public class ChatServer {
 
         return true;
     }
+
+    public static boolean checkNickNameAvailable(String nickName) {
+        if (usersNickNames.contains(nickName))
+            return false;
+        return true;
+    }
+
+    public static void joinRoom(String roomName /*, String nickName*/) {
+        chatRoom r = new chatRoom(roomName, "");
+
+    }
+
+
+    static class chatRoom {
+        private String name;
+        private LinkedList<String> users;
+
+        chatRoom(String name, String user) {
+            this.name = name;
+            this.users = new LinkedList<>();
+
+            if (!chatRooms.contains(name))
+                chatRooms.addFirst(name);
+            usersNickNames.addFirst(user);      // lista global de utilizadores
+            this.users.addFirst(user);          // lista local (sala) de utilizadores
+        }
+
+        boolean removeUser(String nickName) {
+            if (usersNickNames.contains(nickName)) {
+                usersNickNames.remove(nickName);
+                return true;
+            }
+            return false;
+        }
+
+    }
+
 }

@@ -4,6 +4,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 
 
 public class ChatClient {
@@ -74,8 +76,13 @@ public class ChatClient {
     // na caixa de entrada
     public void newMessage(String message) throws IOException {
         // PREENCHER AQUI com código que envia a mensagem ao servidor
-        out.writeBytes(message + "\n");
-//        System.out.println("Mensagem da caixa de texto: " + message);
+        message += "\n";
+        byte[] aux = message.getBytes("UTF8");
+        out.write(aux, 0, aux.length);            //            out.writeBytes(message + "\n");
+        out.flush();
+
+//        System.out.println("Mensagem da caixa de texto: " + (message+"\n").toString());
+
     }
 
 
@@ -83,6 +90,8 @@ public class ChatClient {
     public void run() throws IOException {
         // PREENCHER AQUI
         String messageFromServer = in.readLine();
+        printMessage(messageFromServer);
+
 //        System.out.println("From server: " + messageFromServer);
     }
 
