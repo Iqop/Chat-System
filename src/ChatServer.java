@@ -153,9 +153,9 @@ public class ChatServer {
                             joinRoom(((ClientState) key.attachment()).getRoom(), nickName);
                         }
 
-                        Responses.acceptedNickResponse(key, nickName, newNick);
-                        if (((ClientState) key.attachment()).getState().equals("")) {
-                            ((ClientState) key.attachment()).setState("init");
+                        Responses.acceptedNickResponse(key, nickName, newNick,selector);
+                        if (((ClientState) key.attachment()).getState().equals("init")) {
+                            ((ClientState) key.attachment()).setState("outside");
                         }
                     } else {
                         System.out.println("Negated new nick name: already exists");
@@ -229,12 +229,16 @@ public class ChatServer {
 
             //TODO difundir a mensagem para todos os clientes no mesmo chatroom
             Iterator<SelectionKey> iterator = selector.keys().iterator();
-
+            /*
             while (iterator.hasNext()) {
                 SelectionKey sk = iterator.next();
                 if (!sk.isAcceptable()) {
                     Responses.sendMessageToClient(sk, message);
                 }
+            }
+            */
+            if (((ClientState)key.attachment()).getState().compareTo("inside")==0) {
+              Responses.difuseToChatRoom(key, ((ClientState) key.attachment()).getRoom(),"MESSAGE "+((ClientState) key.attachment()).getNick() +" "+message, selector, true);
             }
         }
         return true;
