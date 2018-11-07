@@ -133,7 +133,9 @@ public class ChatServer {
       switch (command) {
         case "nick":
           
+          
           String newNick = message.split(" ")[1];
+          
           newNick = newNick.replaceAll("\r","").replaceAll("\n","");
           if (!searchNick(newNick)) {
             if (key.attachment() == null) {
