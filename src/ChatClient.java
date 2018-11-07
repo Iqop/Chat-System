@@ -89,11 +89,12 @@ public class ChatClient {
     // Método principal do objecto
     public void run() throws IOException {
         // PREENCHER AQUI
-      while (true) {
-        String messageFromServer = in.readLine();
-        if (messageFromServer==null) break;
-          printMessage(messageFromServer + "\n");
-      }
+        while (true) {
+            String messageFromServer = in.readLine();
+            if (messageFromServer == null)
+                break;
+            printMessage(messageFromServer + "\n");
+        }
 //        System.out.println("From server: " + messageFromServer);
     }
 
