@@ -141,7 +141,8 @@ public class ChatServer {
                     if (!searchNick(newNick)) {
                         if (key.attachment() == null) {
                             System.out.println("Added new NickName");
-                            key.attach(new ClientState(newNick));
+//                            Socket aux = ((SocketChannel) key.channel()).socket();
+                            key.attach(new ClientState(newNick, key));
                             addNick(newNick);
                         } else {
                             removeNick(nickName);
@@ -174,6 +175,7 @@ public class ChatServer {
                         //no room
 
                         //TODO send join message
+                        Responses.joinedRoomResponse(key, nickName);
 
                         joinRoom(room, nickName);
                         ((ClientState) key.attachment()).setRoom(room);
@@ -183,6 +185,7 @@ public class ChatServer {
                         leaveRoom(nickName);
 
                         //TODO send leave message
+
 
                         joinRoom(room, nickName);
 
@@ -210,6 +213,7 @@ public class ChatServer {
                     leaveRoom(nickName);
 
                     //TODO send bye message
+                    Responses.byeResponse(key);
 
                     closeConnection(key);
                     break;
@@ -282,10 +286,8 @@ public class ChatServer {
     }
 
 
-    public static boolean joinRoom(String roomName, String nickName) {
-
+    public static void joinRoom(String roomName, String nickName) {
         chatRooms.put(nickName, roomName);
-        return true;
     }
 
     private static void leaveRoom(String nickName) {
@@ -307,5 +309,22 @@ public class ChatServer {
         return aux;
     }
 
+    public static LinkedList<SelectionKey> getUsersFromRoom(String room) {
+        // obtain users sockets
 
+        LinkedList<SelectionKey> aux = new LinkedList<>();
+        Map<String, String> aux2 = chatRooms;
+
+
+/*
+             // Como consigo ir buscar a key que está associada ao objeto?
+
+
+        for (String key : aux2.keySet()) {
+            if (aux2.get(key).equals(room) && aux2.get(key).getKey())
+                aux.addFirst();
+        }
+*/
+        return aux;
+    }
 }

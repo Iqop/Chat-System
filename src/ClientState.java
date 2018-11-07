@@ -1,20 +1,24 @@
+import java.net.Socket;
 import java.nio.channels.SelectionKey;
 
 public class ClientState {
-    String sala;
+    String room;
     String nick;
     String state;
+    SelectionKey key;
 
-    public ClientState(String nick) {
-        sala = "";
+    public ClientState(String nick, SelectionKey key) {
+        room = "";
         this.nick = new String(nick);
         state = "outside";
+        this.key = key;
     }
 
     public ClientState() {
-        sala = "";
+        room = "";
         this.nick = "";
         state = "init";
+        this.key = null;
     }
 
 
@@ -27,11 +31,11 @@ public class ClientState {
     }
 
     public void setRoom(String roomName) {
-        this.sala = new String(roomName);
+        this.room = new String(roomName);
     }
 
     public String getRoom() {
-        return this.sala;
+        return this.room;
     }
 
     public void setState(String state) {
@@ -40,6 +44,15 @@ public class ClientState {
 
     public String getState() {
         return this.state;
+    }
+
+
+    public void setSelectionKey(SelectionKey key) {
+        this.key = key;
+    }
+
+    public SelectionKey getKey() {
+        return this.key;
     }
 
 }

@@ -2,10 +2,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
 import java.io.*;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
+import java.util.concurrent.TimeUnit;
 
 
 public class ChatClient {
@@ -94,10 +96,23 @@ public class ChatClient {
             if (messageFromServer == null)
                 break;
             printMessage(messageFromServer + "\n");
+            
+            if (messageFromServer.equals("BYE")) {
+                closeWindow(3);
+            }
         }
 //        System.out.println("From server: " + messageFromServer);
     }
 
+
+    private void closeWindow(int sleepTime) {
+        try {
+            TimeUnit.SECONDS.sleep(sleepTime);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+    }
 
     // Instancia o ChatClient e arranca-o invocando o seu método run()
     // * NÃO MODIFICAR *
