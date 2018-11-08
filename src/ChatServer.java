@@ -1,14 +1,8 @@
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
+import java.io.*;
+import java.net.*;
+import java.nio.*;
+import java.nio.channels.*;
+import java.nio.charset.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -140,72 +134,71 @@ public class ChatServer {
             switch (command) {
                 case "nick":
 
-
-                    String newNick = message.split(" ")[1];
-
-                    newNick = newNick.replaceAll("\r", "").replaceAll("\n", "");
-                    if (!searchNick(newNick)) {
+                    if (message.split(" ").length >1) {
+                      String newNick = message.split(" ")[1];
+  
+                      newNick = newNick.replaceAll("\r", "").replaceAll("\n", "");
+                      if (!searchNick(newNick)) {
                         if (key.attachment() == null) {
-                            System.out.println("Added new NickName");
+                          System.out.println("Added new NickName");
 //                            Socket aux = ((SocketChannel) key.channel()).socket();
-                            key.attach(new ClientState(newNick, key));
-                            addNick(newNick);
+                          key.attach(new ClientState(newNick, key));
+                          addNick(newNick);
                         } else {
-                            removeNick(nickName);
-                            addNick(newNick);
-                            ((ClientState) key.attachment()).setNick(newNick);
+                          removeNick(nickName);
+                          addNick(newNick);
+                          ((ClientState) key.attachment()).setNick(newNick);
                         }
                         if (((ClientState) key.attachment()).getRoom().compareTo("") != 0) {
-                            leaveRoom(nickName);
-                            joinRoom(((ClientState) key.attachment()).getRoom(), nickName);
+                          leaveRoom(nickName);
+                          joinRoom(((ClientState) key.attachment()).getRoom(), nickName);
                         }
-
+    
                         Responses.acceptedNickResponse(key, nickName, newNick, selector);
                         if (((ClientState) key.attachment()).getState().equals("init")) {
-                            ((ClientState) key.attachment()).setState("outside");
+                          ((ClientState) key.attachment()).setState("outside");
                         }
-                    } else {
+                      } else {
                         System.out.println("Negated new nick name: already exists");
                         Responses.rejectedNickResponse(key);
+                      }
                     }
-
                     break;
 
 
                 case "join":
-
-                    String room = message.split(" ")[1];
-                    room = room.replaceAll("\r", "").replaceAll("\n", "");
-
-                    if (((ClientState) key.attachment()).getRoom().compareTo("") == 0) {
+                    if(message.split(" ").length>1) {
+                      String room = message.split(" ")[1];
+                      room = room.replaceAll("\r", "").replaceAll("\n", "");
+  
+                      if (((ClientState) key.attachment()).getRoom().compareTo("") == 0) {
                         //no room
-
-                        //TODO send join message
-                        Responses.joinedRoomResponse(key, nickName);
-
+                        
                         joinRoom(room, nickName);
                         ((ClientState) key.attachment()).setRoom(room);
                         ((ClientState) key.attachment()).setState("inside");
-
-                    } else {
+                        
+                        Responses.joinedRoomResponse(key, nickName,selector);
+                      } else {
                         leaveRoom(nickName);
-
-                        //TODO send leave message
-
-
+                        
+                        //Responses.leaveRoomResponseToClient(key);
+                        Responses.leaveRoomResponseToOthers(key, nickName, selector);
+    
                         joinRoom(room, nickName);
-
-                        //TODO send join message
+                        ((ClientState) key.attachment()).setRoom(room);
+                        ((ClientState) key.attachment()).setState("inside");
+                        
+                        Responses.joinedRoomResponse(key, nickName,selector);
+                      }
+  
                     }
-
-
                     break;
 
 
                 case "leave":
                     leaveRoom(nickName);
-
-                    //TODO send leave message
+                    
                     Responses.leaveRoomResponseToClient(key);
                     Responses.leaveRoomResponseToOthers(key, nickName, selector);
 
@@ -219,13 +212,14 @@ public class ChatServer {
 
                 case "bye":
 
-
-                    removeNick(nickName);
-                    leaveRoom(nickName);
-
                     //TODO send bye message
                     Responses.byeResponse(key);
-
+                    
+                    if (((ClientState)key.attachment()).getState().compareTo("inside")==0){
+                      Responses.leaveRoomResponseToOthers(key,nickName,selector);
+                    }
+                    removeNick(nickName);
+                    leaveRoom(nickName);
                     closeConnection(key);
                     break;
 

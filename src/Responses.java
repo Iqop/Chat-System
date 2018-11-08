@@ -18,8 +18,9 @@ public class Responses {
         sendMessageToClient(key, "ERROR");
     }
 
-    public static void joinedRoomResponse(SelectionKey key, String nickname) {
-        sendMessageToClient(key, "JOINED " + nickname);
+    public static void joinedRoomResponse(SelectionKey key, String nickname,Selector selector) {
+        sendMessageToClient(key, "OK");
+        diffuseToChatRoom(key,((ClientState)key.attachment()).getRoom(),"JOINED "+nickname,selector,false);
     }
 
     public static void leaveRoomResponseToClient(SelectionKey key) {
