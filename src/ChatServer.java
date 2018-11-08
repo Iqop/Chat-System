@@ -1,8 +1,14 @@
-import java.io.*;
-import java.net.*;
-import java.nio.*;
-import java.nio.channels.*;
-import java.nio.charset.*;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -154,7 +160,7 @@ public class ChatServer {
                             joinRoom(((ClientState) key.attachment()).getRoom(), nickName);
                         }
 
-                        Responses.acceptedNickResponse(key, nickName, newNick,selector);
+                        Responses.acceptedNickResponse(key, nickName, newNick, selector);
                         if (((ClientState) key.attachment()).getState().equals("init")) {
                             ((ClientState) key.attachment()).setState("outside");
                         }
@@ -198,11 +204,16 @@ public class ChatServer {
 
                 case "leave":
                     leaveRoom(nickName);
+
+                    //TODO send leave message
+                    Responses.leaveRoomResponseToClient(key);
+                    Responses.leaveRoomResponseToOthers(key, nickName, selector);
+
                     ((ClientState) key.attachment()).setRoom("");
                     ((ClientState) key.attachment()).setState("outside");
 
-                    //TODO send leave message
-
+//                    ((ClientState) key.attachment()).getRoom()
+// Responses.diffuseToChatRoom(key, ((ClientState) key.attachment()).getRoom(), "MESSAGE " + ((ClientState) key.attachment()).getNick() + " " + message, selector, true);
                     break;
 
 
@@ -233,6 +244,7 @@ public class ChatServer {
 
             //TODO difundir a mensagem para todos os clientes no mesmo chatroom
             Iterator<SelectionKey> iterator = selector.keys().iterator();
+
             /*
             while (iterator.hasNext()) {
                 SelectionKey sk = iterator.next();
@@ -241,8 +253,8 @@ public class ChatServer {
                 }
             }
             */
-            if (((ClientState)key.attachment()).getState().compareTo("inside")==0) {
-              Responses.difuseToChatRoom(key, ((ClientState) key.attachment()).getRoom(),"MESSAGE "+((ClientState) key.attachment()).getNick() +" "+message, selector, true);
+            if (((ClientState) key.attachment()).getState().compareTo("inside") == 0) {
+                Responses.diffuseToChatRoom(key, ((ClientState) key.attachment()).getRoom(), "MESSAGE " + ((ClientState) key.attachment()).getNick() + " " + message, selector, true);
             }
         }
         return true;
@@ -313,22 +325,4 @@ public class ChatServer {
         return aux;
     }
 
-    public static LinkedList<SelectionKey> getUsersFromRoom(String room) {
-        // obtain users sockets
-
-        LinkedList<SelectionKey> aux = new LinkedList<>();
-        Map<String, String> aux2 = chatRooms;
-
-
-/*
-             // Como consigo ir buscar a key que está associada ao objeto?
-
-
-        for (String key : aux2.keySet()) {
-            if (aux2.get(key).equals(room) && aux2.get(key).getKey())
-                aux.addFirst();
-        }
-*/
-        return aux;
-    }
 }
