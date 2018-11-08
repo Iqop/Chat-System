@@ -133,9 +133,8 @@ public class ChatServer {
             System.out.println("command " + command);
             switch (command) {
                 case "nick":
-
-                    if (message.split(" ").length >1) {
-                      String newNick = message.split(" ")[1];
+                    if (message.split("\\s+").length >1) {
+                      String newNick = message.split(" +")[1];
   
                       newNick = newNick.replaceAll("\r", "").replaceAll("\n", "");
                       if (!searchNick(newNick)) {
@@ -167,8 +166,8 @@ public class ChatServer {
 
 
                 case "join":
-                    if(message.split(" ").length>1) {
-                      String room = message.split(" ")[1];
+                    if(message.split("\\s+").length>1) {
+                      String room = message.split(" +")[1];
                       room = room.replaceAll("\r", "").replaceAll("\n", "");
   
                       if (((ClientState) key.attachment()).getRoom().compareTo("") == 0) {
