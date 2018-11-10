@@ -12,32 +12,32 @@ import java.util.concurrent.TimeUnit;
 
 
 public class ChatClient {
-    
+
     // Variáveis relacionadas com a interface gráfica --- * NÃO MODIFICAR *
     JFrame frame = new JFrame("Chat Client");
     private JTextField chatBox = new JTextField();
     private JTextArea chatArea = new JTextArea();
     // --- Fim das variáveis relacionadas coma interface gráfica
-    
+
     // Se for necessário adicionar variáveis ao objecto ChatClient, devem
     // ser colocadas aqui
-    
+
     String server;
     int port;
     BufferedReader in;
     DataOutputStream out;
     Socket clientSocket;
-    
+
     // Método a usar para acrescentar uma string à caixa de texto
     // * NÃO MODIFICAR *
     public void printMessage(final String message) {
         chatArea.append(message);
     }
-    
-    
+
+
     // Construtor
     public ChatClient(String server, int port) throws IOException {
-        
+
         // Inicialização da interface gráfica --- * NÃO MODIFICAR *
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         JPanel panel = new JPanel();
@@ -62,19 +62,19 @@ public class ChatClient {
             }
         });
         // --- Fim da inicialização da interface gráfica
-        
+
         // Se for necessário adicionar código de inicialização ao
         // construtor, deve ser colocado aqui
-        
+
         this.server = server;
         this.port = port;
         this.clientSocket = new Socket(this.server, this.port);
         this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         this.out = new DataOutputStream(clientSocket.getOutputStream());
-        
+
     }
-    
-    
+
+
     // Método invocado sempre que o utilizador insere uma mensagem
     // na caixa de entrada
     public void newMessage(String message) throws IOException {
@@ -85,10 +85,10 @@ public class ChatClient {
         out.flush();
 
 //        System.out.println("Mensagem da caixa de texto: " + (message+"\n").toString());
-    
+
     }
-    
-    
+
+
     // Método principal do objecto
     public void run() throws IOException {
         // PREENCHER AQUI
@@ -96,30 +96,31 @@ public class ChatClient {
             String messageFromServer = in.readLine();
             if (messageFromServer == null)
                 break;
+
             printMessage(messageFromServer + "\n");
 
             if (messageFromServer.equals("BYE")) {
-                closeWindow(1);
+                closeWindow();
             }
         }
 //        System.out.println("From server: " + messageFromServer);
     }
-    
-    
-    private void closeWindow(int sleepTime) {
+
+
+    private void closeWindow() {
         try {
-            TimeUnit.SECONDS.sleep(sleepTime);
+            TimeUnit.SECONDS.sleep(1);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
     }
-    
+
     // Instancia o ChatClient e arranca-o invocando o seu método run()
     // * NÃO MODIFICAR *
     public static void main(String[] args) throws IOException {
         ChatClient client = new ChatClient(args[0], Integer.parseInt(args[1]));
         client.run();
     }
-    
+
 }

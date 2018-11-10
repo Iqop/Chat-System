@@ -1,12 +1,12 @@
 import java.nio.channels.SelectionKey;
 
 public class ClientState {
-    String room;
-    String nick;
-    String state;
+    private String room;
+    private String nick;
+    private String state;
 
 
-    public ClientState(String nick, SelectionKey key) {
+    public ClientState(String nick) {
         room = "";
         this.nick = nick;
         state = "outside";
@@ -35,7 +35,7 @@ public class ClientState {
         return this.room;
     }
 
-    public void setState(String state) {
+    void setState(String state) {
         this.state = state;
     }
 
