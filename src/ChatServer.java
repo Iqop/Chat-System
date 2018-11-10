@@ -230,6 +230,42 @@ public class ChatServer {
                     break;
 
 
+                case "priv":
+                    String[] aux = message.split("\\s+");
+
+                    boolean ok = false;
+                    if (aux.length >= 3) {
+                        if (userNames.contains(aux[1])) {
+                            SelectionKey receiverKey = getReceiverKey(aux[1], key, selector);
+                            if (receiverKey != null && key.attachment() != null) {
+
+                                StringBuilder newMessage = new StringBuilder();
+                                for (int i = 2; i < aux.length; i++)
+                                    newMessage.append(aux[i]).append(" ");
+                                message = newMessage.toString();
+
+                                if (message.charAt(0) == '/') {
+                                    message = message.replaceFirst("/", "");
+                                }
+
+                                message = message.replace("\n", "");
+
+                                Responses.sendPrivateMessageToClient(key, receiverKey, message);
+                                ok = true;
+                            }
+                        }
+                    }
+                    if (!ok) {
+                        Responses.sendErrorResponse(key);
+                    }
+
+                    break;
+
+
+                default:
+                    Responses.sendErrorResponse(key);
+                    break;
+
             }
         } else {
 
@@ -250,14 +286,15 @@ public class ChatServer {
 
 
                 if (((ClientState) key.attachment()).getState().compareTo("inside") == 0) {
-                    Responses.diffuseToChatRoom(key, ((ClientState) key.attachment()).getRoom(), "MESSAGE " + ((ClientState) key.attachment()).getNick() + " " + message, selector, true);
+//                    Responses.diffuseToChatRoom(key, ((ClientState) key.attachment()).getRoom(), "MESSAGE " + ((ClientState) key.attachment()).getNick() + " " + message, selector, true);
+                    Responses.diffuseToChatRoom(key, ((ClientState) key.attachment()).getRoom(), ((ClientState) key.attachment()).getNick() + ": " + message, selector, true);
                 }
             }
         }
         return true;
     }
 
-    public static void closeConnection(SelectionKey key) {
+    private static void closeConnection(SelectionKey key) {
 
         SocketChannel sc = (SocketChannel) key.channel();
         Socket s = null;
@@ -273,7 +310,7 @@ public class ChatServer {
     }
 
 
-    public static boolean searchNick(String nick) {
+    private static boolean searchNick(String nick) {
         for (String names : userNames) {
             if (names.compareTo(nick) == 0) {
                 return true;
@@ -282,7 +319,7 @@ public class ChatServer {
         return false;
     }
 
-    public static void removeNick(String nick) {
+    private static void removeNick(String nick) {
         int id = -1;
         for (int i = 0; i < userNames.size(); i++) {
             if (userNames.get(i).compareTo(nick) == 0) {
@@ -294,12 +331,12 @@ public class ChatServer {
             userNames.remove(id);
     }
 
-    public static void addNick(String nick) {
+    private static void addNick(String nick) {
         userNames.add(nick);
     }
 
 
-    public static void joinRoom(String roomName, String nickName) {
+    private static void joinRoom(String roomName, String nickName) {
         chatRooms.put(nickName, roomName);
     }
 
@@ -316,6 +353,17 @@ public class ChatServer {
                 aux.addFirst(aux2.get(key));
 
         return aux;
+    }
+
+    private static SelectionKey getReceiverKey(String nick, SelectionKey currentUserKey, Selector selector) {
+        for (SelectionKey key : selector.keys()) {
+            if (!key.isAcceptable() && !key.equals(currentUserKey) && key.attachment() != null) {
+                if (((ClientState) key.attachment()).getNick().equals(nick)) {
+                    return key;
+                }
+            }
+        }
+        return null;
     }
 
 }

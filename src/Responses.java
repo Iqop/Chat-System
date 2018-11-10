@@ -9,7 +9,8 @@ class Responses {
         //TODO SUCCESS, pode utilizar esse nick
         sendMessageToClient(key, "OK");
         if (((ClientState) key.attachment()).getState().compareTo("inside") == 0) {
-            diffuseToChatRoom(key, ((ClientState) key.attachment()).getRoom(), "NEWNICK " + oldNick + " " + newNick, selector, false);
+//            diffuseToChatRoom(key, ((ClientState) key.attachment()).getRoom(), "NEWNICK " + oldNick + " " + newNick, selector, false);
+            diffuseToChatRoom(key, ((ClientState) key.attachment()).getRoom(), oldNick + " mudou de nome " + newNick, selector, false);
         }
     }
 
@@ -46,6 +47,12 @@ class Responses {
                 }
             }
         }
+    }
+
+    static void sendPrivateMessageToClient(SelectionKey senderKey, SelectionKey receiverKey, String message) {
+        String sender = ((ClientState) senderKey.attachment()).getNick();
+        sendMessageToClient(receiverKey, "PRIVATE " + sender + " " + message);
+        sendMessageToClient(senderKey, "OK");
     }
 
     private static void sendMessageToClient(SelectionKey key, String message) {
