@@ -7,7 +7,7 @@ import java.nio.channels.SocketChannel;
 class Responses {
     static void acceptedNickResponse(SelectionKey key, String oldNick, String newNick, Selector selector) {
         //TODO SUCCESS, pode utilizar esse nick
-        sendMessageToClient(key, "OK");
+        sendMessageToClient(key, "OK1");
         if (((ClientState) key.attachment()).getState().compareTo("inside") == 0) {
 //            diffuseToChatRoom(key, ((ClientState) key.attachment()).getRoom(), "NEWNICK " + oldNick + " " + newNick, selector, false);
             diffuseToChatRoom(key, ((ClientState) key.attachment()).getRoom(), oldNick + " mudou de nome " + newNick, selector, false);
@@ -20,7 +20,7 @@ class Responses {
     }
 
     static void joinedRoomResponse(SelectionKey key, String nickname, Selector selector) {
-        sendMessageToClient(key, "OK");
+        sendMessageToClient(key, "OK2");
         diffuseToChatRoom(key, ((ClientState) key.attachment()).getRoom(), "JOINED " + nickname, selector, false);
     }
 
