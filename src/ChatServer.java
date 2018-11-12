@@ -167,6 +167,8 @@ public class ChatServer {
                     System.out.println("Negated new nick name: already exists");
                     Responses.sendErrorResponse(key);
                   }
+                }else{
+                  Responses.sendErrorResponse(key);
                 }
                 break;
   
@@ -197,6 +199,8 @@ public class ChatServer {
           
                       Responses.joinedRoomResponse(key, nickName, selector);
                     }
+                  }else{
+                      Responses.sendErrorResponse(key);
                   }
                 } else {
                   Responses.sendErrorResponse(key);
@@ -286,8 +290,8 @@ public class ChatServer {
       
       
               if (((ClientState) key.attachment()).getState().compareTo("inside") == 0) {
-//                    Responses.diffuseToChatRoom(key, ((ClientState) key.attachment()).getRoom(), "MESSAGE " + ((ClientState) key.attachment()).getNick() + " " + message, selector, true);
-                Responses.diffuseToChatRoom(key, ((ClientState) key.attachment()).getRoom(), ((ClientState) key.attachment()).getNick() + ": " + message, selector, true);
+                Responses.diffuseToChatRoom(key, ((ClientState) key.attachment()).getRoom(), "MESSAGE " + ((ClientState) key.attachment()).getNick() + " " + message, selector, true);
+//                Responses.diffuseToChatRoom(key, ((ClientState) key.attachment()).getRoom(), ((ClientState) key.attachment()).getNick() + ": " + message, selector, true);
               }
             }
           }
