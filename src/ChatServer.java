@@ -99,11 +99,11 @@ public class ChatServer {
                             // If the connection is dead, remove it from the selector
                             // and close it
                             if (!ok) {
-                                closeConnection(key);
+                                closeConnection(key, selector);
                             }
 
                         } catch (IOException ie) {
-                            closeConnection(key);
+                            closeConnection(key, selector);
                             System.out.println("Closed " + sc);
                         }
                     }
@@ -128,188 +128,205 @@ public class ChatServer {
 
         if (buffer.limit() == 0) return false;
 
-        for(String message : decoder.decode(buffer).toString().split("\n")) {
-  
-          System.out.println("mensagem que entrou: " + message);
-          String commandPatternStr = "^/(\\w+)";
-          Pattern commandPattern = Pattern.compile(commandPatternStr);
-          Matcher matcher = commandPattern.matcher(message);
-  
-          if (matcher.find()) {
-            String command = matcher.group(1);
-            String nickName = (key.attachment() != null) ? (((ClientState) key.attachment()).getNick()) : ("");
-            System.out.println("command " + command);
-            switch (command) {
-              case "nick":
-                if (message.split("\\s+").length > 1) {
-                  String newNick = message.split(" +")[1];
-                  newNick = newNick.replaceAll("\r", "").replaceAll("\n", "");
-      
-                  if (!searchNick(newNick)) {
-                    if (key.attachment() == null) {
-                      System.out.println("Added new NickName");
-//                            Socket aux = ((SocketChannel) key.channel()).socket();
-                      key.attach(new ClientState(newNick));
-                      addNick(newNick);
-                    } else {
-                      removeNick(nickName);
-                      addNick(newNick);
-                      ((ClientState) key.attachment()).setNick(newNick);
-                    }
-                    if (((ClientState) key.attachment()).getRoom().compareTo("") != 0) {
-                      leaveRoom(nickName);
-                      joinRoom(((ClientState) key.attachment()).getRoom(), nickName);
-                    }
-        
-                    Responses.acceptedNickResponse(key, nickName, newNick, selector);
-                    if (((ClientState) key.attachment()).getState().equals("init")) {
-                      ((ClientState) key.attachment()).setState("outside");
-                    }
-                  } else {
-                    System.out.println("Negated new nick name: already exists");
-                    Responses.sendErrorResponse(key);
-                  }
-                }else{
-                  Responses.sendErrorResponse(key);
-                }
-                break;
-  
-  
-              case "join":
-                if (key.attachment() != null) {
-                  if (message.split("\\s+").length > 1) {
-                    String room = message.split(" +")[1];
-                    room = room.replaceAll("\r", "").replaceAll("\n", "");
-        
-                    if (((ClientState) key.attachment()).getRoom().compareTo("") == 0) {
-                      //no room
-          
-                      joinRoom(room, nickName);
-                      ((ClientState) key.attachment()).setRoom(room);
-                      ((ClientState) key.attachment()).setState("inside");
-          
-                      Responses.joinedRoomResponse(key, nickName, selector);
-                    } else {
-                      leaveRoom(nickName);
-          
-                      //Responses.leaveRoomResponseToClient(key);
-                      Responses.leaveRoomResponseToOthers(key, nickName, selector);
-          
-                      joinRoom(room, nickName);
-                      ((ClientState) key.attachment()).setRoom(room);
-                      ((ClientState) key.attachment()).setState("inside");
-          
-                      Responses.joinedRoomResponse(key, nickName, selector);
-                    }
-                  }else{
-                      Responses.sendErrorResponse(key);
-                  }
-                } else {
-                  Responses.sendErrorResponse(key);
-                }
-                break;
-  
-  
-              case "leave":
-                leaveRoom(nickName);
-    
-                //TODO send leave message
-                Responses.leaveRoomResponseToClient(key);
-                Responses.leaveRoomResponseToOthers(key, nickName, selector);
-    
-                ((ClientState) key.attachment()).setRoom("");
-                ((ClientState) key.attachment()).setState("outside");
-    
-                break;
-  
-  
-              case "bye":
-                Responses.byeResponse(key);
-                if (key.attachment() != null) {
-                  if (((ClientState) key.attachment()).getState().compareTo("inside") == 0) {
-                    Responses.leaveRoomResponseToOthers(key, nickName, selector);
-                  }
-                }
-                removeNick(nickName);
-                leaveRoom(nickName);
-                closeConnection(key);
-                break;
-  
-  
-              case "priv":
-                String[] aux = message.split("\\s+");
-    
+
+        for (String message : decoder.decode(buffer).toString().split("\n")) {
+
+            System.out.println("mensagem que entrou: " + message);
+            String commandPatternStr = "^/(\\w+)";
+            Pattern commandPattern = Pattern.compile(commandPatternStr);
+            Matcher matcher = commandPattern.matcher(message);
+
+            if (matcher.find()) {
+
                 boolean ok = false;
-                if (aux.length >= 3) {
-                  if (userNames.contains(aux[1])) {
-                    SelectionKey receiverKey = getReceiverKey(aux[1], key, selector);
-                    if (receiverKey != null && key.attachment() != null) {
-          
-                      StringBuilder newMessage = new StringBuilder();
-                      for (int i = 2; i < aux.length; i++)
-                        newMessage.append(aux[i]).append(" ");
-                      message = newMessage.toString();
-          
-                      if (message.charAt(0) == '/') {
-                        message = message.replaceFirst("/", "");
-                      }
-          
-                      message = message.replace("\n", "");
-          
-                      Responses.sendPrivateMessageToClient(key, receiverKey, message);
-                      ok = true;
-                    }
-                  }
+                String command = matcher.group(1);
+                String nickName = (key.attachment() != null) ? (((ClientState) key.attachment()).getNick()) : ("");
+                System.out.println("command " + command);
+                switch (command) {
+                    case "nick":
+                        System.out.println("Veio 1");
+                        if (message.split("\\s+").length > 1) {
+                            String newNick = message.split(" +")[1].replaceAll("\r", "".replaceAll("\n", ""));
+
+                            if (!searchNick(newNick)) {
+                                ok = true;
+                                if (key.attachment() == null) {
+                                    System.out.println("Added new NickName");
+//                            Socket aux = ((SocketChannel) key.channel()).socket();
+                                    key.attach(new ClientState(newNick));
+                                    addNick(newNick);
+                                } else {
+                                    removeNick(nickName);
+                                    addNick(newNick);
+                                    ((ClientState) key.attachment()).setNick(newNick);
+                                }
+                                if (((ClientState) key.attachment()).getRoom().compareTo("") != 0) {
+                                    leaveRoom(nickName);
+                                    joinRoom(((ClientState) key.attachment()).getRoom(), nickName);
+                                }
+
+                                Responses.acceptedNickResponse(key, nickName, newNick, selector);
+                                if (((ClientState) key.attachment()).getState().equals("init")) {
+                                    ((ClientState) key.attachment()).setState("outside");
+                                }
+                            } else {
+                                System.out.println("Negated new nick name: already exists");
+                            }
+                        }
+
+                        if (!ok) {
+                            Responses.sendErrorResponse(key);
+                        }
+
+                        break;
+
+
+                    case "join":
+                        ok = false;
+
+                        if (key.attachment() != null) {
+                            if (message.split("\\s+").length > 1) {
+                                ok = true;
+                                String room = message.split(" +")[1];
+                                room = room.replaceAll("\r", "").replaceAll("\n", "");
+
+                                if (((ClientState) key.attachment()).getRoom().compareTo("") == 0) {
+                                    //no room
+
+                                    joinRoom(room, nickName);
+                                    ((ClientState) key.attachment()).setRoom(room);
+                                    ((ClientState) key.attachment()).setState("inside");
+
+                                    Responses.joinedRoomResponse(key, nickName, selector);
+                                } else {
+                                    leaveRoom(nickName);
+
+                                    //Responses.leaveRoomResponseToClient(key);
+                                    Responses.leaveRoomResponseToOthers(key, nickName, selector);
+
+                                    joinRoom(room, nickName);
+                                    ((ClientState) key.attachment()).setRoom(room);
+                                    ((ClientState) key.attachment()).setState("inside");
+
+                                    Responses.joinedRoomResponse(key, nickName, selector);
+                                }
+                            }
+                        }
+
+                        if (!ok) {
+                            Responses.sendErrorResponse(key);
+                        }
+
+                        break;
+
+
+                    case "leave":
+                        leaveRoom(nickName);
+
+                        //TODO send leave message
+                        Responses.leaveRoomResponseToClient(key);
+                        Responses.leaveRoomResponseToOthers(key, nickName, selector);
+
+                        ((ClientState) key.attachment()).setRoom("");
+                        ((ClientState) key.attachment()).setState("outside");
+
+                        break;
+
+
+                    case "bye":
+                        Responses.byeResponse(key);
+                        if (key.attachment() != null) {
+                            if (((ClientState) key.attachment()).getState().compareTo("inside") == 0) {
+                                Responses.leaveRoomResponseToOthers(key, nickName, selector);
+                                removeNick(((ClientState) key.attachment()).getNick());
+                            }
+                        }
+                        closeConnection(key, selector);
+                        break;
+
+
+                    case "priv":
+                        String[] aux = message.split("\\s+");
+
+                        ok = false;
+
+                        if (aux.length >= 3) {
+                            if (userNames.contains(aux[1])) {
+                                SelectionKey receiverKey = getReceiverKey(aux[1], key, selector);
+                                if (receiverKey != null && key.attachment() != null) {
+
+                                    StringBuilder newMessage = new StringBuilder();
+                                    for (int i = 2; i < aux.length; i++)
+                                        newMessage.append(aux[i]).append(" ");
+                                    message = newMessage.toString();
+
+                                    if (message.charAt(0) == '/') {
+                                        message = message.replaceFirst("/", "");
+                                    }
+
+                                    message = message.replace("\n", "");
+
+                                    Responses.sendPrivateMessageToClient(key, receiverKey, message);
+                                    ok = true;
+                                }
+                            }
+                        }
+                        if (!ok) {
+                            Responses.sendErrorResponse(key);
+                        }
+
+                        break;
+
+
+                    default:
+                        Responses.sendErrorResponse(key);
+                        break;
+
                 }
-                if (!ok) {
-                  Responses.sendErrorResponse(key);
-                }
-    
-                break;
-  
-  
-              default:
-                Responses.sendErrorResponse(key);
-                break;
-  
-            }
-          } else {
-    
-            if (key.attachment() == null) {
-              Responses.sendErrorResponse(key);
-            } else if (!(((ClientState) key.attachment()).getState().equals("inside"))) {
-              Responses.sendErrorResponse(key);
             } else {
-              String unformattedCodePattern = "^//+(.*)";
-              Pattern unfPattern = Pattern.compile(unformattedCodePattern);
-              Matcher matcherUnf = unfPattern.matcher(message);
-      
-              if (matcherUnf.find()) {
-                message = matcherUnf.group(0).replaceFirst("/", "");
-              }
-      
-              message = message.replace("\n", "");
-      
-      
-              if (((ClientState) key.attachment()).getState().compareTo("inside") == 0) {
-                Responses.diffuseToChatRoom(key, ((ClientState) key.attachment()).getRoom(), "MESSAGE " + ((ClientState) key.attachment()).getNick() + " " + message, selector, true);
-//                Responses.diffuseToChatRoom(key, ((ClientState) key.attachment()).getRoom(), ((ClientState) key.attachment()).getNick() + ": " + message, selector, true);
-              }
+                if (key.attachment() == null) {
+                    Responses.sendErrorResponse(key);
+                } else if (!(((ClientState) key.attachment()).getState().equals("inside"))) {
+                    Responses.sendErrorResponse(key);
+                } else {
+                    String unformattedCodePattern = "^//+(.*)";
+                    Pattern unfPattern = Pattern.compile(unformattedCodePattern);
+                    Matcher matcherUnf = unfPattern.matcher(message);
+
+                    if (matcherUnf.find()) {
+                        message = matcherUnf.group(0).replaceFirst("/", "");
+                    }
+
+                    message = message.replace("\n", "");
+
+
+                    if (((ClientState) key.attachment()).getState().compareTo("inside") == 0) {
+//                    Responses.diffuseToChatRoom(key, ((ClientState) key.attachment()).getRoom(), "MESSAGE " + ((ClientState) key.attachment()).getNick() + " " + message, selector, true);
+                        Responses.diffuseToChatRoom(key, ((ClientState) key.attachment()).getRoom(), ((ClientState) key.attachment()).getNick() + ": " + message, selector, true);
+                    }
+                }
             }
-          }
         }
         return true;
     }
 
-    private static void closeConnection(SelectionKey key) {
+    private static void closeConnection(SelectionKey key, Selector selector) {
 
         SocketChannel sc = (SocketChannel) key.channel();
         Socket s = null;
         try {
+            if (key.attachment() != null) {
+                if (searchNick(((ClientState) key.attachment()).getNick())) {
+                    Responses.leaveRoomResponseToOthers(key, ((ClientState) key.attachment()).getNick(), selector);
+                }
+                removeNick(((ClientState) key.attachment()).getNick());
+                leaveRoom(((ClientState) key.attachment()).getNick());
+            }
             s = sc.socket();
             System.out.println("Closing connection to " + s);
             s.close();
             sc.close();
+
         } catch (IOException ie) {
             System.err.println("Error closing socket " + s + ": " + ie);
         }
@@ -372,5 +389,4 @@ public class ChatServer {
         }
         return null;
     }
-
 }

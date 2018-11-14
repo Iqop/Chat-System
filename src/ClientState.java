@@ -1,5 +1,3 @@
-import java.nio.channels.SelectionKey;
-
 public class ClientState {
     private String room;
     private String nick;
