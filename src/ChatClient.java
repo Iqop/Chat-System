@@ -8,11 +8,13 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
 import java.util.concurrent.TimeUnit;
 
 
 public class ChatClient {
-
+  
     // Variáveis relacionadas com a interface gráfica --- * NÃO MODIFICAR *
     JFrame frame = new JFrame("Chat Client");
     private JTextField chatBox = new JTextField();
@@ -27,8 +29,12 @@ public class ChatClient {
     BufferedReader in;
     DataOutputStream out;
     Socket clientSocket;
-
-    // Método a usar para acrescentar uma string à caixa de texto
+  
+   final Charset charset = Charset.forName("UTF8");
+   final CharsetDecoder decoder = charset.newDecoder();
+  
+  
+  // Método a usar para acrescentar uma string à caixa de texto
     // * NÃO MODIFICAR *
     public void printMessage(final String message) {
         chatArea.append(message);
@@ -69,7 +75,7 @@ public class ChatClient {
         this.server = server;
         this.port = port;
         this.clientSocket = new Socket(this.server, this.port);
-        this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(),"UTF-8"));
         this.out = new DataOutputStream(clientSocket.getOutputStream());
 
     }

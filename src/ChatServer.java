@@ -9,6 +9,7 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,6 +21,7 @@ public class ChatServer {
     // Decoder for incoming text -- assume UTF-8
     static private final Charset charset = Charset.forName("UTF8");
     static private final CharsetDecoder decoder = charset.newDecoder();
+
     static private LinkedList<String> userNames = new LinkedList<>();
     static private Map<String, String> chatRooms = new HashMap<>();
 

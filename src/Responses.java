@@ -1,10 +1,19 @@
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetEncoder;
 
 class Responses {
+    
+    static private final Charset charset = Charset.forName("UTF8");
+    static private final CharsetEncoder encoder = charset.newEncoder();
+
+    
     static void acceptedNickResponse(SelectionKey key, String oldNick, String newNick, Selector selector) {
         //TODO SUCCESS, pode utilizar esse nick
         sendMessageToClient(key, "OK");
@@ -58,16 +67,23 @@ class Responses {
     private static void sendMessageToClient(SelectionKey key, String message) {
         SocketChannel sc = (SocketChannel) key.channel();
 //        Socket s = sc.socket();
+       
+       
         ByteBuffer buffer = ByteBuffer.allocate(16384);
         buffer.clear();
-        buffer.put((message + "\n").getBytes());
-        buffer.flip();
         try {
-            sc.write(buffer);
-        } catch (IOException e) {
+            buffer.put(encoder.encode(CharBuffer.wrap(message + "\n")));
+            buffer.flip();
+            try {
+                sc.write(buffer);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            buffer.rewind();
+        } catch (CharacterCodingException e) {
             e.printStackTrace();
         }
-        buffer.rewind();
+    
     }
 }
 
