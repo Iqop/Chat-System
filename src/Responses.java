@@ -9,11 +9,10 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 
 class Responses {
-    
+
     static private final Charset charset = Charset.forName("UTF8");
     static private final CharsetEncoder encoder = charset.newEncoder();
 
-    
     static void acceptedNickResponse(SelectionKey key, String oldNick, String newNick, Selector selector) {
         //TODO SUCCESS, pode utilizar esse nick
         sendMessageToClient(key, "OK");
@@ -67,8 +66,6 @@ class Responses {
     private static void sendMessageToClient(SelectionKey key, String message) {
         SocketChannel sc = (SocketChannel) key.channel();
 //        Socket s = sc.socket();
-       
-       
         ByteBuffer buffer = ByteBuffer.allocate(16384);
         buffer.clear();
         try {
@@ -83,7 +80,6 @@ class Responses {
         } catch (CharacterCodingException e) {
             e.printStackTrace();
         }
-    
     }
 }
 

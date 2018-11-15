@@ -9,7 +9,6 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CharsetEncoder;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,7 +20,6 @@ public class ChatServer {
     // Decoder for incoming text -- assume UTF-8
     static private final Charset charset = Charset.forName("UTF8");
     static private final CharsetDecoder decoder = charset.newDecoder();
-
     static private LinkedList<String> userNames = new LinkedList<>();
     static private Map<String, String> chatRooms = new HashMap<>();
 
@@ -120,7 +118,6 @@ public class ChatServer {
 
     // Just read the message from the socket and send it to stdout
     static private boolean processInput(SelectionKey key, Selector selector) throws IOException {
-
         buffer.clear();
         SocketChannel sc = (SocketChannel) (key.channel());
         sc.read(buffer);
@@ -144,7 +141,6 @@ public class ChatServer {
                 System.out.println("command " + command);
                 switch (command) {
                     case "nick":
-                        System.out.println("Veio 1");
                         if (message.split("\\s+").length > 1) {
                             String newNick = message.split(" +")[1].replaceAll("\r", "".replaceAll("\n", ""));
 

@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 
 public class ChatClient {
-  
+
     // Variáveis relacionadas com a interface gráfica --- * NÃO MODIFICAR *
     JFrame frame = new JFrame("Chat Client");
     private JTextField chatBox = new JTextField();
@@ -24,17 +24,16 @@ public class ChatClient {
     // Se for necessário adicionar variáveis ao objecto ChatClient, devem
     // ser colocadas aqui
 
-    String server;
-    int port;
-    BufferedReader in;
-    DataOutputStream out;
-    Socket clientSocket;
-  
-   final Charset charset = Charset.forName("UTF8");
-   final CharsetDecoder decoder = charset.newDecoder();
-  
-  
-  // Método a usar para acrescentar uma string à caixa de texto
+    private String server;
+    private int port;
+    private BufferedReader in;
+    private DataOutputStream out;
+    private Socket clientSocket;
+
+    final Charset charset = Charset.forName("UTF8");
+    final CharsetDecoder decoder = charset.newDecoder();
+
+    // Método a usar para acrescentar uma string à caixa de texto
     // * NÃO MODIFICAR *
     public void printMessage(final String message) {
         chatArea.append(message);
@@ -75,7 +74,7 @@ public class ChatClient {
         this.server = server;
         this.port = port;
         this.clientSocket = new Socket(this.server, this.port);
-        this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(),"UTF-8"));
+        this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), "UTF-8"));
         this.out = new DataOutputStream(clientSocket.getOutputStream());
 
     }
@@ -91,7 +90,6 @@ public class ChatClient {
         out.flush();
 
 //        System.out.println("Mensagem da caixa de texto: " + (message+"\n").toString());
-
     }
 
 
@@ -99,28 +97,49 @@ public class ChatClient {
     public void run() throws IOException {
         // PREENCHER AQUI
         while (true) {
+
             String messageFromServer = in.readLine();
-            if (messageFromServer == null)
-                break;
+
+            if (messageFromServer == null) {
+                if (!serverAvailabilityCheck()) {
+                    printMessage("Server's down\n".toUpperCase());
+                    closeWindow(3);
+                    return;
+                } else {
+                    break;
+                }
+            }
+
 
             printMessage(messageFromServer + "\n");
 
             if (messageFromServer.equals("BYE")) {
-                closeWindow();
+                closeWindow(1);
             }
         }
 //        System.out.println("From server: " + messageFromServer);
     }
 
 
-    private void closeWindow() {
+    private void closeWindow(int timeout) {
         try {
-            TimeUnit.SECONDS.sleep(1);
+            TimeUnit.SECONDS.sleep(timeout);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
     }
+
+
+    private boolean serverAvailabilityCheck() {
+        try (Socket ignored = new Socket(this.server, this.port)) {
+            return true;
+        } catch (IOException ex) {
+            /* ignore */
+        }
+        return false;
+    }
+
 
     // Instancia o ChatClient e arranca-o invocando o seu método run()
     // * NÃO MODIFICAR *
