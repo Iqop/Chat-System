@@ -129,7 +129,7 @@ public class ChatServer {
         for (String message : decoder.decode(buffer).toString().split("\n")) {
 
             System.out.println("mensagem que entrou: " + message);
-            String commandPatternStr = "^/(\\w+)";
+            String commandPatternStr = "^\\s*/(\\w+)";
             Pattern commandPattern = Pattern.compile(commandPatternStr);
             Matcher matcher = commandPattern.matcher(message);
 
@@ -141,9 +141,9 @@ public class ChatServer {
                 System.out.println("command " + command);
                 switch (command) {
                     case "nick":
-                        if (message.split("\\s+").length > 1) {
-                            String newNick = message.split(" +")[1].replaceAll("\r", "".replaceAll("\n", ""));
-
+                        if (message.split("nick(\\s)+").length > 1) {
+                            String newNick = message.split("nick(\\s)+")[1].replaceAll("\r", "".replaceAll("\n", ""));
+                            System.out.println(newNick);
                             if (!searchNick(newNick)) {
                                 ok = true;
                                 if (key.attachment() == null) {
@@ -181,11 +181,11 @@ public class ChatServer {
                         ok = false;
 
                         if (key.attachment() != null) {
-                            if (message.split("\\s+").length > 1) {
+                            if (message.split("join(\\s)+").length > 1) {
                                 ok = true;
-                                String room = message.split(" +")[1];
+                                String room = message.split("join(\\s)+")[1];
                                 room = room.replaceAll("\r", "").replaceAll("\n", "");
-
+                                System.out.println(room);
                                 if (((ClientState) key.attachment()).getRoom().compareTo("") == 0) {
                                     //no room
 
@@ -217,15 +217,17 @@ public class ChatServer {
 
 
                     case "leave":
-                        leaveRoom(nickName);
-
-                        //TODO send leave message
-                        Responses.leaveRoomResponseToClient(key);
-                        Responses.leaveRoomResponseToOthers(key, nickName, selector);
-
-                        ((ClientState) key.attachment()).setRoom("");
-                        ((ClientState) key.attachment()).setState("outside");
-
+                        
+                        
+                        if (((ClientState)key.attachment()).getState().compareTo("inside")==0) {
+                            leaveRoom(nickName);
+                            //TODO send leave message
+                            Responses.leaveRoomResponseToClient(key);
+                            Responses.leaveRoomResponseToOthers(key, nickName, selector);
+                            ((ClientState) key.attachment()).setRoom("");
+                            ((ClientState) key.attachment()).setState("outside");
+    
+                        }else Responses.sendErrorResponse(key);
                         break;
 
 
