@@ -218,8 +218,7 @@ public class ChatServer {
 
                     case "leave":
                         
-                        
-                        if (((ClientState)key.attachment()).getState().compareTo("inside")==0) {
+                        if (key.attachment()!=null && ((ClientState)key.attachment()).getState().compareTo("inside")==0) {
                             leaveRoom(nickName);
                             //TODO send leave message
                             Responses.leaveRoomResponseToClient(key);
