@@ -298,8 +298,8 @@ public class ChatServer {
 
 
                     if (((ClientState) key.attachment()).getState().compareTo("inside") == 0) {
-//                    Responses.diffuseToChatRoom(key, ((ClientState) key.attachment()).getRoom(), "MESSAGE " + ((ClientState) key.attachment()).getNick() + " " + message, selector, true);
-                        Responses.diffuseToChatRoom(key, ((ClientState) key.attachment()).getRoom(), ((ClientState) key.attachment()).getNick() + ": " + message, selector, true);
+                        Responses.diffuseToChatRoom(key, ((ClientState) key.attachment()).getRoom(), "MESSAGE " + ((ClientState) key.attachment()).getNick() + " " + message, selector, true);
+//                      Responses.diffuseToChatRoom(key, ((ClientState) key.attachment()).getRoom(), ((ClientState) key.attachment()).getNick() + ": " + message, selector, true);
                     }
                 }
             }
