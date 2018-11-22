@@ -147,31 +147,31 @@ public class ChatClient {
 					switch (serverStatus) {
 						case -1:
 							if (clientStatus == 2 || clientStatus == 4) {
-								messageFromServer = "Error: Missing nickname".toUpperCase();
+								messageFromServer = "Erro: Falta nome de utilizador".toUpperCase();
 							} else if (clientStatus == 3) {
-								messageFromServer = "Error: invalid invocation of leave".toUpperCase();
+								messageFromServer = "Erro: Invocação invalida do leave".toUpperCase();
 							} else if (clientStatus == -1) {
-								messageFromServer = "Error: You're not in a chat room".toUpperCase();
+								messageFromServer = "Erro: Não estás numa sala".toUpperCase();
 							} else {
 								messageFromServer = sendDefault();
 							}
 							break;
 						case 1:
 							if (clientStatus == 1) {
-								messageFromServer = "Error: Nickname already in use".toUpperCase();
+								messageFromServer = "Erro: nome de utilizador já está em uso por outro utilizador".toUpperCase();
 							} else if (clientStatus == -1 || clientStatus == 3) {
-								messageFromServer = "Error: You're not in a chat room".toUpperCase();
+								messageFromServer = "Erro: Não estás numa sala".toUpperCase();
 							} else if (clientStatus == 4) {
-								messageFromServer = "Nick not found".toUpperCase();
+								messageFromServer = "Nome de utilizador não encontrado".toUpperCase();
 							} else {
 								messageFromServer = sendDefault();
 							}
 							break;
 						case 2:
 							if (clientStatus == 1) {
-								messageFromServer = "Error: Nickname already in use".toUpperCase();
+								messageFromServer = "Erro: nome de utilizador já está em uso por outro utilizador".toUpperCase();
 							} else if (clientStatus == 4) {
-								messageFromServer = "Nick not found".toUpperCase();
+								messageFromServer = "Nome de utilizador não encontrad".toUpperCase();
 							} else {
 								messageFromServer = sendDefault();
 							}
