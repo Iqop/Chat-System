@@ -171,7 +171,7 @@ public class ChatClient {
 							if (clientStatus == 1) {
 								messageFromServer = "Erro: nome de utilizador já está em uso por outro utilizador".toUpperCase();
 							} else if (clientStatus == 4) {
-								messageFromServer = "Nome de utilizador não encontrad".toUpperCase();
+								messageFromServer = "Nome de utilizador não encontrado".toUpperCase();
 							} else {
 								messageFromServer = sendDefault();
 							}
