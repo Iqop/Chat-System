@@ -10,7 +10,11 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+
+
+
 
 
 public class ChatClient {
@@ -116,9 +120,9 @@ public class ChatClient {
                     break;
                 }
             }
-
+            System.out.println(messageFromServer);
             String[] data = messageFromServer.split(" ");
-
+						System.out.println(Arrays.toString(data));
             switch (data[0]) {
                 case "OK":
                     if (clientStatus == 1 || clientStatus == 3) {
